@@ -34,6 +34,20 @@ Click it to open a popover with the QR code and the Remote URL.
 
 Scan the QR with your phone's camera, or just type the Remote URL into a browser on any device on the same network to load Nuclear Jam.
 
+## Pair your device
+
+The first time a phone or tablet opens the Remote URL, Nuclear Jam asks for a pairing code. This keeps other people on your network from controlling Nuclear.
+
+1. In Nuclear, open Settings, then Integrations. Under **Paired devices**, click **Pair a new device**.
+2. Nuclear shows a QR code, an 8-character code and a pairing link. The code works once and expires after 5 minutes.
+3. Scan the QR code, or type the code on your phone, give the device a name, and tap **Pair**.
+
+Your phone stays paired until you revoke it. To revoke a device, click **Revoke** next to it in the **Paired devices** list. That device will be asked for a new code the next time it connects.
+
+{% hint style="info" %}
+If you add Nuclear Jam to your iPhone home screen, pair from the home-screen app rather than from Safari. iOS keeps their storage separate.
+{% endhint %}
+
 ## What the remote does
 
 The remote UI is a single screen with four sections: a search bar in the header, now playing, controls, and the queue.

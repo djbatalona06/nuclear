@@ -5,6 +5,7 @@ import type {
   Track,
 } from '@nuclearplayer/model';
 
+import { CLIENT_HEADERS, JSON_HEADERS } from './remoteApi';
 import { useRemoteStore } from './remoteStore';
 
 const nextRepeatMode: Record<RepeatMode, RepeatMode> = {
@@ -15,11 +16,11 @@ const nextRepeatMode: Record<RepeatMode, RepeatMode> = {
 
 const toRequestInit = (body?: unknown): RequestInit => {
   if (body === undefined) {
-    return { method: 'POST' };
+    return { method: 'POST', headers: CLIENT_HEADERS };
   }
   return {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: JSON_HEADERS,
     body: JSON.stringify(body),
   };
 };

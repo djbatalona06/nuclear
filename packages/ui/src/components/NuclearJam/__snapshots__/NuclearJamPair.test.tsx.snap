@@ -1,0 +1,206 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NuclearJamPair > (Snapshot) renders the empty form 1`] = `
+<div>
+  <form
+    class="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-5 p-6"
+    data-testid="jam-pair-form"
+  >
+    <div
+      class="flex flex-col items-center gap-3 text-center"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-key-round"
+        fill="none"
+        height="48"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="48"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+        />
+        <circle
+          cx="16.5"
+          cy="7.5"
+          fill="currentColor"
+          r=".5"
+        />
+      </svg>
+      <h1
+        class="text-foreground text-3xl"
+      >
+        Pair this device
+      </h1>
+      <p
+        class="text-foreground-secondary"
+      >
+        Enter the code shown in Nuclear
+      </p>
+    </div>
+    <div
+      class="flex w-full flex-col gap-2"
+    >
+      <label
+        class="text-foreground text-sm font-semibold"
+        for="input-:r0:"
+        id="input-:r0:-label"
+      >
+        Pairing code
+      </label>
+      <input
+        autocapitalize="characters"
+        autocomplete="one-time-code"
+        autocorrect="off"
+        class="border-border text-foreground placeholder:text-foreground-secondary w-full px-3 transition-colors focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none bg-background-input h-11 text-lg rounded-md border-(length:--border-width) font-mono tracking-widest uppercase"
+        data-headlessui-state=""
+        data-testid="jam-pair-code"
+        id="input-:r0:"
+        spellcheck="false"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      class="flex w-full flex-col gap-2"
+    >
+      <label
+        class="text-foreground text-sm font-semibold"
+        for="input-:r2:"
+        id="input-:r2:-label"
+      >
+        Device name
+      </label>
+      <input
+        autocomplete="off"
+        class="border-border text-foreground placeholder:text-foreground-secondary w-full px-3 transition-colors focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none bg-background-input h-10 rounded-md border-(length:--border-width)"
+        data-headlessui-state=""
+        data-testid="jam-pair-device-name"
+        id="input-:r2:"
+        type="text"
+        value="Phone"
+      />
+    </div>
+    <button
+      class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground bg-primary border-border shadow-shadow hover:translate-x-shadow-x hover:translate-y-shadow-y border-(length:--border-width) hover:shadow-none h-11 px-8 justify-center"
+      data-disabled=""
+      data-headlessui-state="disabled"
+      data-testid="jam-pair-submit"
+      disabled=""
+      type="submit"
+    >
+      Pair
+    </button>
+  </form>
+</div>
+`;
+
+exports[`NuclearJamPair > (Snapshot) renders with an error 1`] = `
+<div>
+  <form
+    class="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-5 p-6"
+    data-testid="jam-pair-form"
+  >
+    <div
+      class="flex flex-col items-center gap-3 text-center"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-key-round"
+        fill="none"
+        height="48"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="48"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+        />
+        <circle
+          cx="16.5"
+          cy="7.5"
+          fill="currentColor"
+          r=".5"
+        />
+      </svg>
+      <h1
+        class="text-foreground text-3xl"
+      >
+        Pair this device
+      </h1>
+      <p
+        class="text-foreground-secondary"
+      >
+        Enter the code shown in Nuclear
+      </p>
+    </div>
+    <div
+      class="flex w-full flex-col gap-2"
+    >
+      <label
+        class="text-foreground text-sm font-semibold"
+        for="input-:r4:"
+        id="input-:r4:-label"
+      >
+        Pairing code
+      </label>
+      <input
+        autocapitalize="characters"
+        autocomplete="one-time-code"
+        autocorrect="off"
+        class="border-border text-foreground placeholder:text-foreground-secondary w-full px-3 transition-colors focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none bg-background-input h-11 text-lg rounded-md border-(length:--border-width) font-mono tracking-widest uppercase"
+        data-headlessui-state=""
+        data-testid="jam-pair-code"
+        id="input-:r4:"
+        spellcheck="false"
+        type="text"
+        value="ABCD2345"
+      />
+    </div>
+    <div
+      class="flex w-full flex-col gap-2"
+    >
+      <label
+        class="text-foreground text-sm font-semibold"
+        for="input-:r6:"
+        id="input-:r6:-label"
+      >
+        Device name
+      </label>
+      <input
+        autocomplete="off"
+        class="border-border text-foreground placeholder:text-foreground-secondary w-full px-3 transition-colors focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:outline-none bg-background-input h-10 rounded-md border-(length:--border-width)"
+        data-headlessui-state=""
+        data-testid="jam-pair-device-name"
+        id="input-:r6:"
+        type="text"
+        value="Phone"
+      />
+    </div>
+    <p
+      class="text-accent-red text-sm font-semibold"
+      data-testid="jam-pair-error"
+      role="alert"
+    >
+      That code is wrong or has expired
+    </p>
+    <button
+      class="inline-flex cursor-pointer items-center rounded-md whitespace-nowrap transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground bg-primary border-border shadow-shadow hover:translate-x-shadow-x hover:translate-y-shadow-y border-(length:--border-width) hover:shadow-none h-11 px-8 justify-center"
+      data-headlessui-state=""
+      data-testid="jam-pair-submit"
+      type="submit"
+    >
+      Pair
+    </button>
+  </form>
+</div>
+`;

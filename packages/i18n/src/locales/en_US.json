@@ -436,6 +436,17 @@
         "apiUrl": {
           "title": "API URL",
           "description": "HTTP API base URL for programmatic access."
+        },
+        "devices": {
+          "title": "Paired devices",
+          "description": "Only paired devices can control Nuclear through Nuclear Jam. Pair a phone or tablet once, then revoke it here if you lose it.",
+          "pairNew": "Pair a new device",
+          "pairingLink": "Pairing link",
+          "expiresIn": "Expires in {{time}}",
+          "empty": "No devices paired yet.",
+          "neverSeen": "Not used yet",
+          "lastSeen": "Last seen {{time}}",
+          "revoke": "Revoke"
         }
       },
       "mcp": {
@@ -585,6 +596,20 @@
     "qrCode": {
       "tooltip": "Nuclear Jam remote control",
       "instructions": "Scan the QR code or copy the address below to connect to Nuclear Jam"
+    },
+    "pair": {
+      "title": "Pair this device",
+      "subtitle": "In Nuclear on your computer, open Settings, then Integrations, and choose Pair a new device. Enter the code it shows.",
+      "code": "Pairing code",
+      "deviceName": "Device name",
+      "defaultDeviceName": "Phone",
+      "submit": "Pair",
+      "errors": {
+        "invalidCode": "That code is wrong or has expired. Create a new one in Nuclear.",
+        "tooManyAttempts": "Too many wrong tries. Create a new code in Nuclear.",
+        "invalidDeviceName": "Enter a name for this device.",
+        "generic": "Pairing failed. Check the connection to Nuclear and try again."
+      }
     }
   },
   "titleBar": {
