@@ -374,3 +374,41 @@ async fn unpairing_revokes_the_calling_device() {
     assert_eq!(afterwards.status(), StatusCode::UNAUTHORIZED);
     assert!(auth.devices.list_active().await.unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn path_tricks_never_reach_protected_routes_without_a_device() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+
+    for path in [
+        "//api/queue",
+        "/api/./queue",
+        "/x/../api/queue",
+        "/API/queue",
+    ] {
+        let response = send(&app, get_request(path, None)).await;
+        let bytes = to_bytes(response.into_body(), MAX_BODY_BYTES)
+            .await
+            .unwrap();
+        assert_ne!(&bytes[..], b"queue", "{path} reached a protected route");
+    }
+}
+
+#[tokio::test]
+async fn encoded_setting_ids_cannot_escape_the_playback_allowlist() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let cookie = paired_cookie(&auth, &app).await;
+
+    let response = send(
+        &app,
+        post_request(
+            "/api/settings/core%2Eintegrations.jam.enabled",
+            Some(&cookie),
+            json!(false),
+        ),
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+}
