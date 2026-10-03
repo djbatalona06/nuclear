@@ -3,6 +3,7 @@ pub mod tools;
 
 use std::sync::Arc;
 
+use axum::middleware;
 use rmcp::transport::streamable_http_server::{
     session::local::LocalSessionManager, StreamableHttpServerConfig, StreamableHttpService,
 };
@@ -11,6 +12,8 @@ use tauri::{AppHandle, Manager};
 use tokio::sync::{oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use tools::NuclearMcpServer;
+
+use crate::local_guard::{require_local_origin, NO_EXTRA_ORIGINS};
 
 const MCP_PORT_START: u16 = 8800;
 const MCP_PORT_END: u16 = 8809;
@@ -60,7 +63,13 @@ async fn start_server(
         },
     );
 
-    let router = axum::Router::new().nest_service("/mcp", service);
+    let router =
+        axum::Router::new()
+            .nest_service("/mcp", service)
+            .layer(middleware::from_fn_with_state(
+                NO_EXTRA_ORIGINS,
+                require_local_origin,
+            ));
 
     let tcp_listener = match crate::net::bind_first_available_port(
         "127.0.0.1",

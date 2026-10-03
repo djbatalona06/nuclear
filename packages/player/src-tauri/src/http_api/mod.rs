@@ -2,8 +2,10 @@ mod actions;
 pub mod auth;
 pub mod devices;
 mod frontend;
+mod headers;
 mod routes;
 mod search;
+mod settings_policy;
 
 use std::sync::Arc;
 

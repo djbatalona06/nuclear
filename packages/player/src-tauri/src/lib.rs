@@ -5,6 +5,7 @@ pub mod discord;
 pub mod history;
 pub mod http;
 pub mod http_api;
+pub mod local_guard;
 pub mod logging;
 pub mod mcp;
 pub mod mpd;

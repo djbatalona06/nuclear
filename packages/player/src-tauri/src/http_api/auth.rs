@@ -13,16 +13,19 @@ use axum::{
     Extension, Json, Router,
 };
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use percent_encoding::percent_decode_str;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use tokio::sync::Mutex;
 
 use super::devices::{DeviceStore, RemoteDevice};
+use super::settings_policy;
 
 pub const DEVICE_COOKIE: &str = "nuclear_device";
 pub const CLIENT_HEADER: &str = "x-nuclear-client";
 pub const CLIENT_HEADER_VALUE: &str = "remote";
+const FORWARDED_PROTO_HEADER: &str = "x-forwarded-proto";
 
 const PAIRING_CODE_LENGTH: usize = 8;
 const PAIRING_CODE_ALPHABET: &[u8; 32] = b"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -34,7 +37,6 @@ const MAX_DEVICE_NAME_LENGTH: usize = 64;
 const API_PREFIX: &str = "/api/";
 const PUBLIC_API_PATHS: [&str; 2] = ["/api/health", "/api/pair"];
 const SETTINGS_PATH_PREFIX: &str = "/api/settings/";
-const REMOTE_WRITABLE_SETTINGS_PREFIX: &str = "/api/settings/core.playback.";
 
 struct PendingPairing {
     code: String,
@@ -145,12 +147,30 @@ fn now_seconds() -> i64 {
     chrono::Utc::now().timestamp()
 }
 
-fn device_cookie(token: &str) -> String {
-    format!("{DEVICE_COOKIE}={token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age={COOKIE_MAX_AGE_SECONDS}")
+fn secure_attribute(secure: bool) -> &'static str {
+    if secure {
+        "; Secure"
+    } else {
+        ""
+    }
 }
 
-fn expired_device_cookie() -> String {
-    format!("{DEVICE_COOKIE}=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0")
+fn is_secure_request(headers: &HeaderMap) -> bool {
+    headers
+        .get(FORWARDED_PROTO_HEADER)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .is_some_and(|protocol| protocol.trim().eq_ignore_ascii_case("https"))
+}
+
+fn device_cookie(token: &str, secure: bool) -> String {
+    let secure = secure_attribute(secure);
+    format!("{DEVICE_COOKIE}={token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age={COOKIE_MAX_AGE_SECONDS}{secure}")
+}
+
+fn expired_device_cookie(secure: bool) -> String {
+    let secure = secure_attribute(secure);
+    format!("{DEVICE_COOKIE}=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0{secure}")
 }
 
 fn device_token(headers: &HeaderMap) -> Option<String> {
@@ -210,11 +230,15 @@ async fn guard(State(auth): State<AuthState>, mut request: Request, next: Next) 
         }
     };
 
-    if request.method() == Method::POST
-        && path.starts_with(SETTINGS_PATH_PREFIX)
-        && !path.starts_with(REMOTE_WRITABLE_SETTINGS_PREFIX)
-    {
-        return error_response(StatusCode::FORBIDDEN, "setting_not_writable");
+    if let Some(encoded_setting_id) = path.strip_prefix(SETTINGS_PATH_PREFIX) {
+        let setting_id = percent_decode_str(encoded_setting_id).decode_utf8_lossy();
+        if is_mutation(request.method()) {
+            if !settings_policy::is_remote_writable(&setting_id) {
+                return error_response(StatusCode::FORBIDDEN, "setting_not_writable");
+            }
+        } else if !settings_policy::is_remote_readable(&setting_id) {
+            return error_response(StatusCode::FORBIDDEN, "setting_not_readable");
+        }
     }
 
     if let Err(err) = auth.devices.touch(&device.id, now_seconds()).await {
@@ -263,7 +287,10 @@ async fn pair(
     {
         Ok(device) => (
             StatusCode::OK,
-            [(SET_COOKIE, device_cookie(&token))],
+            [(
+                SET_COOKIE,
+                device_cookie(&token, is_secure_request(&headers)),
+            )],
             Json(json!({ "deviceId": device.id, "name": device.name })),
         )
             .into_response(),
@@ -281,11 +308,15 @@ async fn me(Extension(device): Extension<RemoteDevice>) -> Response {
 async fn unpair(
     State(auth): State<AuthState>,
     Extension(device): Extension<RemoteDevice>,
+    headers: HeaderMap,
 ) -> Response {
     match auth.devices.revoke(&device.id, now_seconds()).await {
         Ok(()) => (
             StatusCode::NO_CONTENT,
-            [(SET_COOKIE, expired_device_cookie())],
+            [(
+                SET_COOKIE,
+                expired_device_cookie(is_secure_request(&headers)),
+            )],
         )
             .into_response(),
         Err(err) => {

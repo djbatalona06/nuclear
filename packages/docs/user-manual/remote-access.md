@@ -47,6 +47,14 @@ Optional: turn on **Tailnet only**. Nuclear Jam then only accepts connections fr
 
 Pair from the home screen app, not from the browser tab you used to install it. iOS keeps the two separate, so a pairing made in Safari does not carry over.
 
+## Keeping it secure
+
+- Only devices you paired can control Nuclear. Review the **Paired devices** list in Settings, then Integrations, and revoke any device you no longer use or have lost.
+- Turn on **Tailnet only** once Tailscale works. Nuclear Jam then never listens on your Wi-Fi, so pairing and the device cookie stay inside the encrypted Tailscale connection.
+- Anyone on your tailnet can open the Nuclear Jam address, but they still need a pairing code from Nuclear to control it. If other people are on your tailnet, use Tailscale access controls to limit who can reach this computer.
+- Through Tailscale Serve the connection is HTTPS, and the device cookie is marked `Secure` so it is never sent over plain HTTP.
+- To stop sharing completely, run `tailscale serve reset`.
+
 ## Troubleshooting
 
 | Problem | What to check |

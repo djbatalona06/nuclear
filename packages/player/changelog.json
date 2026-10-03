@@ -1,6 +1,22 @@
 [
   {
     "date": "2026-10-03T00:00",
+    "description": "Hardened Nuclear Jam and the local servers. Paired devices can only read the settings the remote needs, the device cookie is marked Secure over HTTPS, and websites can no longer reach the stream proxy, MCP or MPD servers. Updates now come from this project's own signed releases.",
+    "type": "improvement",
+    "contributors": ["djbatalona06"],
+    "tags": [
+      {
+        "label": "Nuclear Jam",
+        "color": "purple"
+      },
+      {
+        "label": "Security",
+        "color": "red"
+      }
+    ]
+  },
+  {
+    "date": "2026-10-03T00:00",
     "description": "Nuclear Jam can now be installed on your phone's home screen and used away from home through Tailscale. Set a Remote address for QR codes and pairing links, and turn on Tailnet only to block direct connections from your local network.",
     "type": "feature",
     "contributors": ["djbatalona06"],

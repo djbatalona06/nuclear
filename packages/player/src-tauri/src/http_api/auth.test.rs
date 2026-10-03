@@ -24,7 +24,11 @@ fn app(auth: &AuthState) -> Router {
         .route("/api/health", get(|| async { "ok" }))
         .route("/api/queue", get(|| async { "queue" }))
         .route("/api/playback/toggle", post(|| async { "toggled" }))
-        .route("/api/settings/{id}", post(|| async { "saved" }))
+        .route("/api/settings", get(|| async { "settings" }))
+        .route(
+            "/api/settings/{id}",
+            get(|| async { "setting" }).post(|| async { "saved" }),
+        )
         .fallback(|| async { "frontend" });
     protect(routes, auth.clone())
 }
@@ -158,6 +162,137 @@ async fn pairing_cookie_is_http_only_and_strict() {
     assert!(set_cookie.contains("HttpOnly"));
     assert!(set_cookie.contains("SameSite=Strict"));
     assert!(set_cookie.contains("Path=/api"));
+}
+
+fn set_cookie_header(response: &Response) -> String {
+    response
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string()
+}
+
+fn pair_request_forwarded_as(code: &str, protocol: &str) -> Request<Body> {
+    Request::post("/api/pair")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header(CLIENT_HEADER, CLIENT_HEADER_VALUE)
+        .header("x-forwarded-proto", protocol)
+        .body(Body::from(
+            json!({ "code": code, "deviceName": "Kitchen iPad" }).to_string(),
+        ))
+        .unwrap()
+}
+
+#[tokio::test]
+async fn cookie_is_secure_when_the_request_arrived_over_https() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let pairing = auth.start_pairing().await;
+
+    let response = send(&app, pair_request_forwarded_as(&pairing.code, "https")).await;
+
+    assert!(set_cookie_header(&response).contains("; Secure"));
+}
+
+#[tokio::test]
+async fn cookie_is_not_secure_over_plain_http_so_lan_pairing_still_works() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+
+    let plain = auth.start_pairing().await;
+    let without_header = send(&app, pair_request(&plain.code)).await;
+    let forwarded_http = auth.start_pairing().await;
+    let with_http_header = send(
+        &app,
+        pair_request_forwarded_as(&forwarded_http.code, "http"),
+    )
+    .await;
+
+    assert!(!set_cookie_header(&without_header).contains("Secure"));
+    assert!(!set_cookie_header(&with_http_header).contains("Secure"));
+}
+
+#[tokio::test]
+async fn forwarded_protocol_lists_use_the_first_hop() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let pairing = auth.start_pairing().await;
+
+    let response = send(
+        &app,
+        pair_request_forwarded_as(&pairing.code, "https, http"),
+    )
+    .await;
+
+    assert!(set_cookie_header(&response).contains("; Secure"));
+}
+
+#[tokio::test]
+async fn the_expired_cookie_on_unpair_is_secure_over_https() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let cookie = paired_cookie(&auth, &app).await;
+
+    let response = send(
+        &app,
+        Request::delete("/api/me")
+            .header(header::COOKIE, &cookie)
+            .header(CLIENT_HEADER, CLIENT_HEADER_VALUE)
+            .header("x-forwarded-proto", "https")
+            .body(Body::empty())
+            .unwrap(),
+    )
+    .await;
+
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+    let expired = set_cookie_header(&response);
+    assert!(expired.contains("Max-Age=0"));
+    assert!(expired.contains("; Secure"));
+}
+
+#[tokio::test]
+async fn paired_devices_can_read_the_settings_the_remote_ui_needs() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let cookie = paired_cookie(&auth, &app).await;
+
+    for path in [
+        "/api/settings",
+        "/api/settings/core.playback.shuffle",
+        "/api/settings/core.theme.dark",
+        "/api/settings/core.general.language",
+    ] {
+        let response = send(&app, get_request(path, Some(&cookie))).await;
+        assert_eq!(
+            response.status(),
+            StatusCode::OK,
+            "{path} should be readable"
+        );
+    }
+}
+
+#[tokio::test]
+async fn paired_devices_cannot_read_other_settings() {
+    let auth = auth_state().await;
+    let app = app(&auth);
+    let cookie = paired_cookie(&auth, &app).await;
+
+    for path in [
+        "/api/settings/core.integrations.jam.publicUrl",
+        "/api/settings/core.integrations.mcp.enabled",
+        "/api/settings/core%2Eintegrations.jam.localOnly",
+        "/api/settings/",
+    ] {
+        let response = send(&app, get_request(path, Some(&cookie))).await;
+        assert_eq!(
+            response.status(),
+            StatusCode::FORBIDDEN,
+            "{path} should not be readable"
+        );
+        assert_eq!(json_body(response).await["error"], "setting_not_readable");
+    }
 }
 
 #[tokio::test]

@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use axum::body::Body;
 use axum::extract::{Path, State};
-use axum::http::{header, HeaderMap, Response, StatusCode};
+use axum::http::{header, HeaderMap, HeaderValue, Response, StatusCode};
+use axum::middleware;
 use axum::routing::get;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::Client;
@@ -10,6 +11,8 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager};
 use tokio::sync::oneshot;
 use tokio_util::sync::CancellationToken;
+
+use crate::local_guard::{require_local_origin, TAURI_ORIGINS};
 
 const PORT_START: u16 = 9100;
 const PORT_END: u16 = 9109;
@@ -41,8 +44,12 @@ fn decode_stream_url(encoded: &str) -> Result<String, String> {
     Ok(url)
 }
 
-fn cors_headers(headers: &mut HeaderMap) {
-    headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+fn cors_headers(headers: &mut HeaderMap, origin: Option<&HeaderValue>) {
+    let Some(origin) = origin else {
+        return;
+    };
+    headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin.clone());
+    headers.insert(header::VARY, HeaderValue::from_static("Origin"));
     headers.insert(
         header::ACCESS_CONTROL_ALLOW_METHODS,
         "GET, OPTIONS, HEAD".parse().unwrap(),
@@ -59,12 +66,16 @@ fn cors_headers(headers: &mut HeaderMap) {
     );
 }
 
-fn error_response(status: StatusCode, message: String) -> Response<Body> {
+fn error_response(
+    status: StatusCode,
+    message: String,
+    origin: Option<&HeaderValue>,
+) -> Response<Body> {
     let mut response = Response::builder()
         .status(status)
         .body(Body::from(message))
         .unwrap();
-    cors_headers(response.headers_mut());
+    cors_headers(response.headers_mut(), origin);
     response
 }
 
@@ -73,11 +84,14 @@ async fn proxy_stream(
     Path(encoded_url): Path<String>,
     headers: HeaderMap,
 ) -> Response<Body> {
+    let origin = headers.get(header::ORIGIN).cloned();
+    let origin = origin.as_ref();
+
     let url = match decode_stream_url(&encoded_url) {
         Ok(url) => url,
         Err(message) => {
             log::error!("[StreamServer] {message}");
-            return error_response(StatusCode::BAD_REQUEST, message);
+            return error_response(StatusCode::BAD_REQUEST, message, origin);
         }
     };
 
@@ -95,7 +109,11 @@ async fn proxy_stream(
         Ok(response) => response,
         Err(err) => {
             log::error!("[StreamServer] Request failed: {err:?}");
-            return error_response(StatusCode::BAD_GATEWAY, format!("Failed to fetch: {err}"));
+            return error_response(
+                StatusCode::BAD_GATEWAY,
+                format!("Failed to fetch: {err}"),
+                origin,
+            );
         }
     };
 
@@ -105,6 +123,7 @@ async fn proxy_stream(
         return error_response(
             StatusCode::from_u16(upstream_status.as_u16()).unwrap_or(StatusCode::BAD_GATEWAY),
             format!("Streaming service returned error: {upstream_status}"),
+            origin,
         );
     }
 
@@ -122,16 +141,16 @@ async fn proxy_stream(
         }
     }
 
-    cors_headers(response.headers_mut());
+    cors_headers(response.headers_mut(), origin);
     response
 }
 
-async fn options_handler() -> Response<Body> {
+async fn options_handler(headers: HeaderMap) -> Response<Body> {
     let mut response = Response::builder()
         .status(StatusCode::NO_CONTENT)
         .body(Body::empty())
         .unwrap();
-    cors_headers(response.headers_mut());
+    cors_headers(response.headers_mut(), headers.get(header::ORIGIN));
     response
 }
 
@@ -143,7 +162,11 @@ async fn start_server(client: Arc<Client>, ready: oneshot::Sender<Result<u16, St
             "/stream/{encoded_url}",
             get(proxy_stream).options(options_handler),
         )
-        .with_state(client);
+        .with_state(client)
+        .layer(middleware::from_fn_with_state(
+            TAURI_ORIGINS,
+            require_local_origin,
+        ));
 
     let tcp_listener =
         match crate::net::bind_first_available_port("127.0.0.1", PORT_START, PORT_END).await {
