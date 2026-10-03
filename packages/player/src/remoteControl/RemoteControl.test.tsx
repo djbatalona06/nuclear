@@ -78,7 +78,7 @@ describe('RemoteControl', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/api/playback/toggle', {
       method: 'POST',
-      headers: undefined,
+      headers: { 'X-Nuclear-Client': 'remote' },
       body: undefined,
     });
   });
@@ -91,7 +91,7 @@ describe('RemoteControl', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/api/playback/next', {
       method: 'POST',
-      headers: undefined,
+      headers: { 'X-Nuclear-Client': 'remote' },
       body: undefined,
     });
   });
@@ -104,7 +104,7 @@ describe('RemoteControl', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/api/playback/previous', {
       method: 'POST',
-      headers: undefined,
+      headers: { 'X-Nuclear-Client': 'remote' },
       body: undefined,
     });
   });
@@ -117,7 +117,10 @@ describe('RemoteControl', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/api/playback/shuffle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'X-Nuclear-Client': 'remote',
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ enabled: true }),
     });
   });
@@ -130,7 +133,10 @@ describe('RemoteControl', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/api/playback/repeat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'X-Nuclear-Client': 'remote',
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ mode: 'all' }),
     });
   });
@@ -192,7 +198,10 @@ describe('RemoteControl', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/queue/remove', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'X-Nuclear-Client': 'remote',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ ids: [REMOTE_QUEUE.items[1].id] }),
       });
     });
@@ -212,7 +221,10 @@ describe('RemoteControl', () => {
       '/api/search',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'X-Nuclear-Client': 'remote',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           query: 'idioteque',
           types: ['tracks'],
@@ -307,7 +319,10 @@ describe('RemoteControl', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/queue/add', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'X-Nuclear-Client': 'remote',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ tracks: [REMOTE_SEARCH_TRACKS[0]] }),
       });
     });
@@ -332,7 +347,7 @@ describe('RemoteControl', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/playback/play', {
         method: 'POST',
-        headers: undefined,
+        headers: { 'X-Nuclear-Client': 'remote' },
         body: undefined,
       });
     });

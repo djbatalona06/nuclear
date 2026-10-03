@@ -18,6 +18,9 @@ export const commands = {
 	mcpStop: () => typedError<null, string>(__TAURI_INVOKE("mcp_stop")),
 	httpApiStart: () => typedError<HttpApiStartResult, string>(__TAURI_INVOKE("http_api_start")),
 	httpApiStop: () => typedError<null, string>(__TAURI_INVOKE("http_api_stop")),
+	remotePairingStart: () => typedError<PairingCode, string>(__TAURI_INVOKE("remote_pairing_start")),
+	remoteDevicesList: () => typedError<RemoteDevice[], string>(__TAURI_INVOKE("remote_devices_list")),
+	remoteDeviceRevoke: (id: string) => typedError<null, string>(__TAURI_INVOKE("remote_device_revoke", { id })),
 	mpdStart: () => typedError<number, string>(__TAURI_INVOKE("mpd_start")),
 	mpdStop: () => typedError<null, string>(__TAURI_INVOKE("mpd_stop")),
 	streamServerPort: () => __TAURI_INVOKE<number>("stream_server_port"),
@@ -108,6 +111,11 @@ export type PageRequest = {
 	offset: number,
 };
 
+export type PairingCode = {
+	code: string,
+	expiresInSeconds: number,
+};
+
 export type PlayEndReason = "finished" | "skipped" | "stopped";
 
 export type PlayEvent = {
@@ -120,6 +128,13 @@ export type PlayEvent = {
 };
 
 export type PlayEventKind = "started" | "paused" | "resumed" | "seeked" | "finished" | "skipped" | "stopped";
+
+export type RemoteDevice = {
+	id: string,
+	name: string,
+	createdAt: number,
+	lastSeenAt: number | null,
+};
 
 export type StartupLogEntry = {
 	timestamp: string,

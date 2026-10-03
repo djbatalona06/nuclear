@@ -38,3 +38,8 @@ export const REMOTE_SETTINGS: SettingsState = {
   dark: false,
   themeId: 'nuclear:default',
 };
+
+export const REMOTE_DEVICE = {
+  deviceId: 'device-1',
+  name: 'Kitchen iPad',
+};

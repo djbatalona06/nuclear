@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC } from 'react';
 
-import RemoteControl from './RemoteControl';
+import { RemoteSession } from './RemoteSession';
 
 const defaultQueryClient = new QueryClient();
 
@@ -11,7 +11,7 @@ type RemoteAppProps = {
 
 const RemoteApp: FC<RemoteAppProps> = ({ queryClientProp }) => (
   <QueryClientProvider client={queryClientProp ?? defaultQueryClient}>
-    <RemoteControl />
+    <RemoteSession />
   </QueryClientProvider>
 );
 

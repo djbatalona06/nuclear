@@ -8,13 +8,31 @@ When Nuclear Jam is enabled, Nuclear exposes a local HTTP API on the same server
 
 Enable Nuclear Jam in Settings, then Integrations. The **API URL** field shows the base URL (e.g. `http://192.168.1.42:4120/api`).
 
+## Authentication
+
+Every endpoint except `GET /api/health` and `POST /api/pair` requires a paired device.
+
+1. In Nuclear, open Settings, then Integrations, and click **Pair a new device**. Nuclear shows an 8-character code that works once and expires after 5 minutes.
+2. Send `POST /api/pair` with `{ "code": "ABCD2345", "deviceName": "My script" }`. On success Nuclear sets an `HttpOnly` cookie called `nuclear_device`. Keep it and send it with every later request (for example with `curl -c jar -b jar`).
+3. Every `POST` and `DELETE` must also include the header `X-Nuclear-Client: remote`. Requests without it get `403`.
+
+Five wrong codes in a row cancel the active code (`429`); create a new one in Nuclear. Revoke a device in Settings, then Integrations, or call `DELETE /api/me` from the device itself.
+
+Paired devices can only change settings under `core.playback.*` through `POST /api/settings/{id}`.
+
+| Method | Path | Body | Returns |
+|--------|------|------|---------|
+| POST | `/api/pair` | `{ "code": string, "deviceName": string }` | `{ "deviceId": string, "name": string }` and the device cookie. `401` for a wrong or expired code, `429` after too many wrong codes, `400` for an empty name |
+| GET | `/api/me` | none | `{ "deviceId": string, "name": string }`, or `401` if this device is not paired |
+| DELETE | `/api/me` | none | `204`, unpairs the calling device |
+
 ## Endpoints
 
 ### State
 
 | Method | Path | Returns |
 |--------|------|---------|
-| GET | `/api/health` | `{ "status": "ok" }` |
+| GET | `/api/health` | `{ "status": "ok", "apiVersion": number }`. No pairing needed |
 | GET | `/api/queue` | `{ "items": QueueItem[], "currentIndex": number }` |
 | GET | `/api/playback` | `{ "status": string, "seek": number, "duration": number }` |
 | GET | `/api/settings` | `{ "shuffle": boolean, "repeat": string, "discovery": boolean, "language": string, "dark": boolean, "themeId": string }` |
@@ -75,4 +93,4 @@ Failed requests return a JSON body with an `error` field:
 { "error": "Playback.toggle failed: no track in queue" }
 ```
 
-The status code is `500` for bridge errors (the command reached Nuclear but failed) and standard HTTP codes for anything else.
+The status code is `500` for bridge errors (the command reached Nuclear but failed) and standard HTTP codes for anything else. Authentication errors use `401` with `{ "error": "unauthorized" }` and `403` with `missing_client_header` or `setting_not_writable`.

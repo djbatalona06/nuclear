@@ -1,4 +1,6 @@
 mod actions;
+pub mod auth;
+pub mod devices;
 mod frontend;
 mod routes;
 mod search;
@@ -73,10 +75,11 @@ pub struct HttpApiStartResult {
 async fn start_server(
     bridge: crate::bridge::bridge::Bridge,
     events_tx: broadcast::Sender<RemoteEvent>,
+    auth_state: auth::AuthState,
     ct: CancellationToken,
     ready: oneshot::Sender<Result<HttpApiStartResult, String>>,
 ) {
-    let router = routes::router(bridge, events_tx);
+    let router = routes::router(bridge, events_tx, auth_state);
 
     let tcp_listener =
         match crate::net::bind_first_available_port("0.0.0.0", REMOTE_PORT_START, REMOTE_PORT_END)
@@ -121,8 +124,28 @@ fn listen_for_event(
     });
 }
 
+async fn open_device_store(app_handle: &AppHandle) -> Result<devices::DeviceStore, String> {
+    let data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|err| format!("Failed to resolve app data dir: {err}"))?;
+    let pool = crate::db::open(&data_dir.join("databases").join("remote.db")).await?;
+    sqlx::migrate!("./migrations/remote")
+        .run(&pool)
+        .await
+        .map_err(|err| format!("Failed to run remote device migrations: {err}"))?;
+    Ok(devices::DeviceStore::new(pool))
+}
+
 pub fn init_http_api(app_handle: AppHandle) {
     let state = HttpApiState::new();
+
+    match tauri::async_runtime::block_on(open_device_store(&app_handle)) {
+        Ok(store) => {
+            app_handle.manage(auth::AuthState::new(store));
+        }
+        Err(err) => log::error!("Remote device storage unavailable, Nuclear Jam disabled: {err}"),
+    }
 
     listen_for_event(&app_handle, RemoteEventKind::Queue, &state.events_tx);
     listen_for_event(&app_handle, RemoteEventKind::Playback, &state.events_tx);
@@ -136,6 +159,7 @@ pub fn init_http_api(app_handle: AppHandle) {
 pub async fn http_api_start(
     state: tauri::State<'_, HttpApiState>,
     bridge: tauri::State<'_, crate::bridge::bridge::Bridge>,
+    auth_state: tauri::State<'_, auth::AuthState>,
 ) -> Result<HttpApiStartResult, String> {
     let mut guard = state.running.lock().await;
     if let Some(server) = guard.as_ref() {
@@ -153,6 +177,7 @@ pub async fn http_api_start(
     let task = tauri::async_runtime::spawn(start_server(
         bridge.inner().clone(),
         state.events_tx.clone(),
+        auth_state.inner().clone(),
         ct.clone(),
         ready_tx,
     ));
@@ -183,4 +208,32 @@ pub async fn http_api_stop(state: tauri::State<'_, HttpApiState>) -> Result<(), 
         log::info!("HTTP API server already stopped");
     }
     Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn remote_pairing_start(
+    auth_state: tauri::State<'_, auth::AuthState>,
+) -> Result<auth::PairingCode, String> {
+    Ok(auth_state.start_pairing().await)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn remote_devices_list(
+    auth_state: tauri::State<'_, auth::AuthState>,
+) -> Result<Vec<devices::RemoteDevice>, String> {
+    auth_state.devices.list_active().await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn remote_device_revoke(
+    auth_state: tauri::State<'_, auth::AuthState>,
+    id: String,
+) -> Result<(), String> {
+    auth_state
+        .devices
+        .revoke(&id, chrono::Utc::now().timestamp())
+        .await
 }

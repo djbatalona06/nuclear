@@ -14,8 +14,10 @@ use futures::Stream;
 use serde_json::{json, Value};
 use tokio::sync::broadcast;
 
-use super::{actions, search, RemoteEvent};
+use super::{actions, auth, search, RemoteEvent};
 use crate::bridge::{bridge::Bridge, types::BridgeError};
+
+pub const API_VERSION: u32 = 1;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -37,7 +39,7 @@ impl IntoResponse for BridgeErrorResponse {
 }
 
 async fn health() -> Json<Value> {
-    Json(json!({ "status": "ok" }))
+    Json(json!({ "status": "ok", "apiVersion": API_VERSION }))
 }
 
 async fn get_queue(State(state): State<AppState>) -> Result<Json<Value>, BridgeErrorResponse> {
@@ -139,10 +141,14 @@ async fn get_events(
     Sse::new(events_stream(receiver)).keep_alive(KeepAlive::default())
 }
 
-pub fn router(bridge: Bridge, events_tx: broadcast::Sender<RemoteEvent>) -> Router {
+pub fn router(
+    bridge: Bridge,
+    events_tx: broadcast::Sender<RemoteEvent>,
+    auth_state: auth::AuthState,
+) -> Router {
     let state = AppState { bridge, events_tx };
 
-    Router::new()
+    let routes = Router::new()
         .route("/api/health", get(health))
         .route("/api/queue", get(get_queue))
         .route("/api/playback", get(get_playback))
@@ -160,5 +166,7 @@ pub fn router(bridge: Bridge, events_tx: broadcast::Sender<RemoteEvent>) -> Rout
         .route("/api/queue/remove", post(actions::remove_from_queue))
         .route("/api/search", post(search::search))
         .fallback(super::frontend::serve_frontend)
-        .with_state(state)
+        .with_state(state);
+
+    auth::protect(routes, auth_state)
 }

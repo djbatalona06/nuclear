@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-10-02T00:00",
+    "description": "Nuclear Jam now requires pairing. Phones and tablets pair once with a short code from Settings, then Integrations, and you can revoke any paired device there.",
+    "type": "feature",
+    "contributors": ["djbatalona06"],
+    "tags": [
+      {
+        "label": "Nuclear Jam",
+        "color": "purple"
+      }
+    ]
+  },
+  {
     "date": "2026-08-16T00:00",
     "description": "Fixed various Appimage issues caused by Wayland.",
     "type": "fix",

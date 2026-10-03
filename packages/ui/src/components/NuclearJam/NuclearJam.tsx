@@ -22,6 +22,11 @@ import {
   NuclearJamNowPlayingProps,
 } from './NuclearJamNowPlaying';
 import {
+  NuclearJamPair,
+  NuclearJamPairLabels,
+  NuclearJamPairProps,
+} from './NuclearJamPair';
+import {
   NuclearJamQueue,
   NuclearJamQueueLabels,
   NuclearJamQueueProps,
@@ -67,6 +72,7 @@ type NuclearJamComponent = FC<NuclearJamProps> & {
   Header: typeof NuclearJamHeader;
   Content: typeof NuclearJamContent;
   NowPlaying: typeof NuclearJamNowPlaying;
+  Pair: typeof NuclearJamPair;
   Controls: typeof NuclearJamControls;
   Queue: typeof NuclearJamQueue;
   SearchBar: typeof NuclearJamSearchBar;
@@ -80,6 +86,7 @@ NuclearJam.Error = NuclearJamError;
 NuclearJam.Header = NuclearJamHeader;
 NuclearJam.Content = NuclearJamContent;
 NuclearJam.NowPlaying = NuclearJamNowPlaying;
+NuclearJam.Pair = NuclearJamPair;
 NuclearJam.Controls = NuclearJamControls;
 NuclearJam.Queue = NuclearJamQueue;
 NuclearJam.SearchBar = NuclearJamSearchBar;
@@ -91,6 +98,8 @@ export type {
   NuclearJamHeaderProps,
   NuclearJamContentProps,
   NuclearJamNowPlayingProps,
+  NuclearJamPairLabels,
+  NuclearJamPairProps,
   NuclearJamControlsProps,
   NuclearJamConnectingLabels,
   NuclearJamErrorLabels,

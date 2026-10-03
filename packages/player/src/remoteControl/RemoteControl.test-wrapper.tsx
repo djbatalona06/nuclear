@@ -4,6 +4,7 @@ import {
   render,
   RenderResult,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -11,6 +12,7 @@ import userEvent from '@testing-library/user-event';
 import type { Queue, Track } from '@nuclearplayer/model';
 
 import {
+  REMOTE_DEVICE,
   REMOTE_EMPTY_QUEUE,
   REMOTE_PLAYBACK,
   REMOTE_QUEUE,
@@ -24,6 +26,7 @@ import { useRemoteStore } from './remoteStore';
 
 const user = userEvent.setup();
 const MAX_RETRIES = 3;
+const UNAUTHORIZED = 401;
 
 export const RemoteControlWrapper = {
   reset() {
@@ -32,17 +35,39 @@ export const RemoteControlWrapper = {
     vi.stubGlobal('EventSource', MockEventSource);
     vi.restoreAllMocks();
     vi.stubGlobal('EventSource', MockEventSource);
+    window.history.replaceState(null, '', '/');
   },
 
   async mount(): Promise<RenderResult> {
+    FetchMock.init();
+    FetchMock.get('/api/me', REMOTE_DEVICE);
     const result = render(<RemoteApp queryClientProp={new QueryClient()} />);
     await screen.findByTestId('jam-connecting');
+    await waitFor(() => expect(MockEventSource.lastInstance).not.toBeNull());
     return result;
+  },
+
+  async mountUnpaired(): Promise<RenderResult> {
+    FetchMock.init();
+    FetchMock.getError('/api/me', UNAUTHORIZED);
+    const result = render(<RemoteApp queryClientProp={new QueryClient()} />);
+    await screen.findByTestId('jam-pair-form');
+    return result;
+  },
+
+  openPairingLink(code: string) {
+    window.history.replaceState(null, '', `/#pair=${code}`);
+  },
+
+  revokeThisDevice() {
+    FetchMock.reset();
+    FetchMock.getError('/api/me', UNAUTHORIZED);
   },
 
   async simulateConnection(options: { emptyQueue?: boolean } = {}) {
     const queue = options.emptyQueue ? REMOTE_EMPTY_QUEUE : REMOTE_QUEUE;
     FetchMock.init();
+    FetchMock.get('/api/me', REMOTE_DEVICE);
     FetchMock.get('/api/queue', queue);
     FetchMock.get('/api/playback', REMOTE_PLAYBACK);
     FetchMock.get('/api/settings', REMOTE_SETTINGS);
@@ -79,6 +104,50 @@ export const RemoteControlWrapper = {
 
   get errorState() {
     return screen.queryByTestId('jam-error');
+  },
+
+  pairing: {
+    get form() {
+      return screen.queryByTestId('jam-pair-form');
+    },
+    get error() {
+      return screen.queryByTestId('jam-pair-error');
+    },
+    mockSuccess() {
+      FetchMock.get('/api/pair', REMOTE_DEVICE);
+    },
+    mockFailure(status: number) {
+      FetchMock.getError('/api/pair', status);
+    },
+    codeInput: {
+      get element() {
+        return screen.getByTestId('jam-pair-code');
+      },
+      async type(text: string) {
+        await user.type(this.element, text);
+      },
+    },
+    deviceNameInput: {
+      get element() {
+        return screen.getByTestId('jam-pair-device-name');
+      },
+      async replace(text: string) {
+        await user.clear(this.element);
+        await user.type(this.element, text);
+      },
+    },
+    submitButton: {
+      get element() {
+        return screen.getByTestId('jam-pair-submit');
+      },
+      async click() {
+        await user.click(this.element);
+      },
+    },
+    async pairWith(code: string) {
+      await this.codeInput.type(code);
+      await this.submitButton.click();
+    },
   },
 
   header: {
