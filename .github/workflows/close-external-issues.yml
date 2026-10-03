@@ -8,7 +8,7 @@ jobs:
   close-if-external:
     runs-on: ubuntu-latest
     if: >-
-      github.event.issue.user.login != 'nukeop'
+      github.event.issue.user.login != github.repository_owner
       && github.event.issue.user.login != 'renovate[bot]'
     steps:
       - name: Checkout code
