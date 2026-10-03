@@ -13,6 +13,24 @@ use tokio_util::sync::CancellationToken;
 
 const REMOTE_PORT_START: u16 = 4120;
 const REMOTE_PORT_END: u16 = 4129;
+const ALL_INTERFACES: &str = "0.0.0.0";
+const LOOPBACK: &str = "127.0.0.1";
+
+fn bind_host(local_only: bool) -> &'static str {
+    if local_only {
+        LOOPBACK
+    } else {
+        ALL_INTERFACES
+    }
+}
+
+fn reachable_lan_address(local_only: bool) -> Option<String> {
+    if local_only {
+        None
+    } else {
+        crate::net::local_lan_ip().map(|ip| ip.to_string())
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RemoteEventKind {
@@ -49,6 +67,7 @@ struct RunningServer {
     task: tauri::async_runtime::JoinHandle<()>,
     cancellation_token: CancellationToken,
     port: u16,
+    local_only: bool,
 }
 
 pub struct HttpApiState {
@@ -76,14 +95,15 @@ async fn start_server(
     bridge: crate::bridge::bridge::Bridge,
     events_tx: broadcast::Sender<RemoteEvent>,
     auth_state: auth::AuthState,
+    local_only: bool,
     ct: CancellationToken,
     ready: oneshot::Sender<Result<HttpApiStartResult, String>>,
 ) {
     let router = routes::router(bridge, events_tx, auth_state);
+    let host = bind_host(local_only);
 
     let tcp_listener =
-        match crate::net::bind_first_available_port("0.0.0.0", REMOTE_PORT_START, REMOTE_PORT_END)
-            .await
+        match crate::net::bind_first_available_port(host, REMOTE_PORT_START, REMOTE_PORT_END).await
         {
             Ok(listener) => listener,
             Err(message) => {
@@ -94,8 +114,8 @@ async fn start_server(
         };
 
     let bound_port = tcp_listener.local_addr().unwrap().port();
-    let lan_address = crate::net::local_lan_ip().map(|ip| ip.to_string());
-    log::info!("HTTP API server listening on http://0.0.0.0:{bound_port}/api/health");
+    let lan_address = reachable_lan_address(local_only);
+    log::info!("HTTP API server listening on http://{host}:{bound_port}/api/health");
     let _ = ready.send(Ok(HttpApiStartResult {
         port: bound_port,
         lan_address,
@@ -160,14 +180,14 @@ pub async fn http_api_start(
     state: tauri::State<'_, HttpApiState>,
     bridge: tauri::State<'_, crate::bridge::bridge::Bridge>,
     auth_state: tauri::State<'_, auth::AuthState>,
+    local_only: bool,
 ) -> Result<HttpApiStartResult, String> {
     let mut guard = state.running.lock().await;
     if let Some(server) = guard.as_ref() {
         log::info!("HTTP API server already running on port {}", server.port);
-        let lan_address = crate::net::local_lan_ip().map(|ip| ip.to_string());
         return Ok(HttpApiStartResult {
             port: server.port,
-            lan_address,
+            lan_address: reachable_lan_address(server.local_only),
         });
     }
 
@@ -178,6 +198,7 @@ pub async fn http_api_start(
         bridge.inner().clone(),
         state.events_tx.clone(),
         auth_state.inner().clone(),
+        local_only,
         ct.clone(),
         ready_tx,
     ));
@@ -188,6 +209,7 @@ pub async fn http_api_start(
                 task,
                 cancellation_token: ct,
                 port: result.port,
+                local_only,
             });
             Ok(result)
         }
@@ -236,4 +258,36 @@ pub async fn remote_device_revoke(
         .devices
         .revoke(&id, chrono::Utc::now().timestamp())
         .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{bind_host, reachable_lan_address, REMOTE_PORT_END, REMOTE_PORT_START};
+
+    #[tokio::test]
+    async fn local_only_server_listens_on_loopback() {
+        let listener = crate::net::bind_first_available_port(
+            bind_host(true),
+            REMOTE_PORT_START,
+            REMOTE_PORT_END,
+        )
+        .await
+        .unwrap();
+
+        assert!(listener.local_addr().unwrap().ip().is_loopback());
+        assert_eq!(reachable_lan_address(true), None);
+    }
+
+    #[tokio::test]
+    async fn default_server_listens_on_all_interfaces() {
+        let listener = crate::net::bind_first_available_port(
+            bind_host(false),
+            REMOTE_PORT_START,
+            REMOTE_PORT_END,
+        )
+        .await
+        .unwrap();
+
+        assert!(listener.local_addr().unwrap().ip().is_unspecified());
+    }
 }

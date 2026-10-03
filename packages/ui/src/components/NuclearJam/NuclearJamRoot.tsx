@@ -13,7 +13,7 @@ export const NuclearJamRoot: FC<NuclearJamProps> = ({
 }) => (
   <div
     className={cn(
-      'bg-background text-foreground flex h-dvh flex-col overflow-hidden',
+      'bg-background text-foreground flex h-dvh flex-col overflow-hidden pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]',
       className,
     )}
   >

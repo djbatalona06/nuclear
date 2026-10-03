@@ -16,6 +16,7 @@ import { Logger } from '../logger';
 const JAM_ENABLED_SETTING = 'core.integrations.jam.enabled';
 const JAM_REMOTE_URL_SETTING = 'core.integrations.jam.remoteUrl';
 const JAM_API_URL_SETTING = 'core.integrations.jam.apiUrl';
+const JAM_LOCAL_ONLY_SETTING = 'core.integrations.jam.localOnly';
 
 type HttpApiStartResult = {
   port: number;
@@ -75,7 +76,10 @@ let activeUnsubscribers: Unsubscribe[] = [];
 const DEV_VITE_PORT = 5173;
 
 const startServer = async () => {
-  const result = await invoke<HttpApiStartResult>('http_api_start');
+  const localOnly = getSetting(JAM_LOCAL_ONLY_SETTING) === true;
+  const result = await invoke<HttpApiStartResult>('http_api_start', {
+    localOnly,
+  });
   const host = result.lan_address ?? '127.0.0.1';
   const apiBaseUrl = `http://${host}:${result.port}`;
   const remotePort = import.meta.env.DEV ? DEV_VITE_PORT : result.port;
@@ -98,12 +102,31 @@ const stopServer = async () => {
   activeUnsubscribers = [];
 };
 
+const restartServer = () => {
+  Logger['http-api'].info('Restarting HTTP API server');
+  stopServer()
+    .then(startServer)
+    .catch((err) =>
+      Logger['http-api'].error(
+        `Failed to restart HTTP API server: ${errorMessage(err)}`,
+      ),
+    );
+};
+
 const watchEnabledSetting = () => {
   let previouslyEnabled = getSetting(JAM_ENABLED_SETTING) === true;
+  let previouslyLocalOnly = getSetting(JAM_LOCAL_ONLY_SETTING) === true;
 
-  useSettingsStore.subscribe((state) => {
+  return useSettingsStore.subscribe((state) => {
     const enabled = state.getValue(JAM_ENABLED_SETTING) === true;
+    const localOnly = state.getValue(JAM_LOCAL_ONLY_SETTING) === true;
+    const localOnlyChanged = localOnly !== previouslyLocalOnly;
+    previouslyLocalOnly = localOnly;
+
     if (enabled === previouslyEnabled) {
+      if (enabled && localOnlyChanged) {
+        restartServer();
+      }
       return;
     }
     previouslyEnabled = enabled;
@@ -127,10 +150,12 @@ const watchEnabledSetting = () => {
 };
 
 export const initHttpApiHandler = async () => {
-  watchEnabledSetting();
+  const stopWatching = watchEnabledSetting();
 
   if (getSetting(JAM_ENABLED_SETTING) === true) {
     Logger['http-api'].info('HTTP API server enabled on startup');
     await startServer();
   }
+
+  return stopWatching;
 };

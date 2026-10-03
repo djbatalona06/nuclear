@@ -1,5 +1,17 @@
 [
   {
+    "date": "2026-10-03T00:00",
+    "description": "Nuclear Jam can now be installed on your phone's home screen and used away from home through Tailscale. Set a Remote address for QR codes and pairing links, and turn on Tailnet only to block direct connections from your local network.",
+    "type": "feature",
+    "contributors": ["djbatalona06"],
+    "tags": [
+      {
+        "label": "Nuclear Jam",
+        "color": "purple"
+      }
+    ]
+  },
+  {
     "date": "2026-10-02T00:00",
     "description": "Nuclear Jam now requires pairing. Phones and tablets pair once with a short code from Settings, then Integrations, and you can revoke any paired device there.",
     "type": "feature",

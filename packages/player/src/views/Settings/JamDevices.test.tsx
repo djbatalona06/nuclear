@@ -84,6 +84,23 @@ describe('Nuclear Jam paired devices', () => {
     expect(Wrapper.pairing.countdown).toBe('Expires in 5:00');
   });
 
+  it('uses the Tailscale address for the pairing link when one is set', async () => {
+    Wrapper.mockPairingCode('ABCD2345');
+    await Wrapper.mount({
+      remoteUrl: 'http://192.168.1.42:4120',
+      publicUrl: 'https://desktop.tailnet.ts.net/',
+    });
+    await Wrapper.findPanel();
+
+    await Wrapper.pairButton.click();
+
+    await waitFor(() => {
+      expect(Wrapper.pairing.link).toBe(
+        'https://desktop.tailnet.ts.net/#pair=ABCD2345',
+      );
+    });
+  });
+
   it('counts down and hides the code when it expires', async () => {
     Wrapper.mockPairingCode('ABCD2345');
     await Wrapper.mount();

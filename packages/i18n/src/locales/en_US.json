@@ -437,6 +437,14 @@
           "title": "API URL",
           "description": "HTTP API base URL for programmatic access."
         },
+        "publicUrl": {
+          "title": "Remote address",
+          "description": "Your Tailscale Serve address, like https://my-computer.tail1234.ts.net. QR codes and pairing links use it instead of the local network address, so they work away from home."
+        },
+        "localOnly": {
+          "title": "Tailnet only",
+          "description": "Only accept connections from this computer. Nuclear Jam stays reachable through Tailscale Serve but not from other devices on your local network. Nuclear Jam restarts when you change this."
+        },
         "devices": {
           "title": "Paired devices",
           "description": "Only paired devices can control Nuclear through Nuclear Jam. Pair a phone or tablet once, then revoke it here if you lose it.",
@@ -600,6 +608,7 @@
     "pair": {
       "title": "Pair this device",
       "subtitle": "In Nuclear on your computer, open Settings, then Integrations, and choose Pair a new device. Enter the code it shows.",
+      "homeScreenHint": "On iPhone or iPad, tap Share, then Add to Home Screen, and pair from the new icon. Pairing here in Safari won't carry over to the home screen app.",
       "code": "Pairing code",
       "deviceName": "Device name",
       "defaultDeviceName": "Phone",
