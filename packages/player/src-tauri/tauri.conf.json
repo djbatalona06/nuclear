@@ -78,9 +78,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczRDk0QzBFODNCNDEyNUUKUldSZUVyU0REa3paYzdTaE9IdlErcjNoTmdyMkNLL0d3alFZTHVMcytxQzJ3K1NJRlFWQlVaYk4K",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY4MzY1MEM4NUE4RkJFQTIKUldTaXZvOWF5RkEyK1BYSTUwYXd5TzhXMUNDWXZORzZlZEhqellyNGtQdGh1WEJSVmVwNENmS1YK",
       "endpoints": [
-        "https://github.com/nukeop/nuclear/releases/latest/download/latest.json"
+        "https://github.com/djbatalona06/nuclear/releases/latest/download/latest.json"
       ]
     }
   }

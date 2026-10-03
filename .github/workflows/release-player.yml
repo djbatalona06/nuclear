@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-tags: true
           fetch-depth: 0
@@ -51,12 +51,12 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
 
       - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       - name: Get PNPM store directory
         shell: bash
@@ -64,7 +64,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Setup PNPM cache
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -72,12 +72,13 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
+          toolchain: stable
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Cache cargo dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.cargo/bin/
@@ -99,15 +100,18 @@ jobs:
       - name: Generate release notes
         id: release_notes
         shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_NOTES_SINCE: "2026-08-16T00:00:00Z"
         run: |
-          NOTES=$(node packages/tools/src/generate-release-notes.mjs "${{ steps.version.outputs.version }}")
+          NOTES=$(node packages/tools/src/generate-release-notes.mjs "$RELEASE_VERSION")
           DELIMITER=$(openssl rand -hex 16)
           echo "notes<<$DELIMITER" >> $GITHUB_OUTPUT
           echo "$NOTES" >> $GITHUB_OUTPUT
           echo "$DELIMITER" >> $GITHUB_OUTPUT
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -130,7 +134,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Extract version from tag
         id: version
@@ -155,7 +159,7 @@ jobs:
         run: python3 /tmp/flatpak-cargo-generator.py packages/player/src-tauri/Cargo.lock -o flatpak/cargo-sources.json
 
       - name: Build Flatpak bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6
         with:
           bundle: nuclear-music-player.flatpak
           manifest-path: flatpak/com.nuclearplayer.Nuclear.yml

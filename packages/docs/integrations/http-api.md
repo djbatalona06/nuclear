@@ -18,7 +18,7 @@ Every endpoint except `GET /api/health` and `POST /api/pair` requires a paired d
 
 Five wrong codes in a row cancel the active code (`429`); create a new one in Nuclear. Revoke a device in Settings, then Integrations, or call `DELETE /api/me` from the device itself.
 
-Paired devices can only change settings under `core.playback.*` through `POST /api/settings/{id}`.
+Paired devices can only change settings under `core.playback.*` through `POST /api/settings/{id}`, and can only read the settings the remote UI needs (`core.playback.*`, the language, and the theme) through `GET /api/settings/{id}`.
 
 | Method | Path | Body | Returns |
 |--------|------|------|---------|
@@ -36,7 +36,7 @@ Paired devices can only change settings under `core.playback.*` through `POST /a
 | GET | `/api/queue` | `{ "items": QueueItem[], "currentIndex": number }` |
 | GET | `/api/playback` | `{ "status": string, "seek": number, "duration": number }` |
 | GET | `/api/settings` | `{ "shuffle": boolean, "repeat": string, "discovery": boolean, "language": string, "dark": boolean, "themeId": string }` |
-| GET | `/api/settings/{id}` | The value of a single setting by its fully-qualified ID (e.g. `core.playback.shuffle`) |
+| GET | `/api/settings/{id}` | The value of a single setting by its fully-qualified ID (e.g. `core.playback.shuffle`). `403` for settings a paired device may not read |
 
 ### Actions
 
@@ -93,4 +93,4 @@ Failed requests return a JSON body with an `error` field:
 { "error": "Playback.toggle failed: no track in queue" }
 ```
 
-The status code is `500` for bridge errors (the command reached Nuclear but failed) and standard HTTP codes for anything else. Authentication errors use `401` with `{ "error": "unauthorized" }` and `403` with `missing_client_header` or `setting_not_writable`.
+The status code is `500` for bridge errors (the command reached Nuclear but failed) and standard HTTP codes for anything else. Authentication errors use `401` with `{ "error": "unauthorized" }` and `403` with `missing_client_header`, `setting_not_readable` or `setting_not_writable`.

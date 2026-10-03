@@ -22,6 +22,10 @@ The server binds to your LAN address on a port in the 4120-4129 range. If your c
 Nuclear Jam only listens on your local network. Devices need to be on the same Wi-Fi (or wired LAN) to connect. To use it away from home, or to install it on your phone's home screen, see [Remote access with Tailscale](remote-access.md).
 {% endhint %}
 
+{% hint style="warning" %}
+On your home network, Nuclear Jam uses plain `http://`, so anyone on the same Wi-Fi could watch the pairing happen. Pair only on a network you trust, and revoke any device you no longer use. For the safest setup, use [Tailscale](remote-access.md) and turn on **Tailnet only**.
+{% endhint %}
+
 ## Connect from your phone
 
 Once Jam is on, a small QR code icon appears in the top bar of Nuclear, next to the theme switcher.

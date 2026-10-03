@@ -1,5 +1,16 @@
 pub const GREETING: &[u8] = b"OK MPD 0.25.0\n";
 
+const HTTP_METHODS: [&str; 9] = [
+    "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH", "CONNECT", "TRACE",
+];
+
+pub fn is_http_request_line(line: &str) -> bool {
+    let mut parts = line.trim_end_matches(['\r', '\n']).split(' ');
+    let method = parts.next().unwrap_or("");
+    let version = parts.next_back().unwrap_or("");
+    HTTP_METHODS.contains(&method) && version.starts_with("HTTP/")
+}
+
 pub enum Command {
     Ping,
     Password,
@@ -231,3 +242,30 @@ pub fn format_error(error: &MpdError) -> Vec<u8> {
 
 pub const LIST_OK: &[u8] = b"list_OK\n";
 pub const OK: &[u8] = b"OK\n";
+
+#[cfg(test)]
+mod tests {
+    use super::is_http_request_line;
+
+    #[test]
+    fn browser_requests_are_recognised_as_http() {
+        assert!(is_http_request_line("POST / HTTP/1.1"));
+        assert!(is_http_request_line("GET /stream HTTP/1.0\r\n"));
+        assert!(is_http_request_line("OPTIONS * HTTP/1.1"));
+    }
+
+    #[test]
+    fn mpd_commands_are_not_mistaken_for_http() {
+        assert!(!is_http_request_line("status"));
+        assert!(!is_http_request_line("play 3"));
+        assert!(!is_http_request_line("setvol 50"));
+        assert!(!is_http_request_line("seek 1 30"));
+        assert!(!is_http_request_line(""));
+    }
+
+    #[test]
+    fn http_method_words_without_a_version_are_not_http() {
+        assert!(!is_http_request_line("GET"));
+        assert!(!is_http_request_line("delete 3"));
+    }
+}

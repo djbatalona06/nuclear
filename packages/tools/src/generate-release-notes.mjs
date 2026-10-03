@@ -39,6 +39,8 @@ try {
 
   if (tags.length >= 2) {
     previousTagDate = new Date(tags[1]);
+  } else if (process.env.RELEASE_NOTES_SINCE) {
+    previousTagDate = new Date(process.env.RELEASE_NOTES_SINCE);
   }
 } catch (err) {
   console.error('Warning: could not read git tags:', err.message);

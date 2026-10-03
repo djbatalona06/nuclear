@@ -151,6 +151,7 @@ impl Connection {
         let mut line = String::new();
         let mut list_mode = ListMode::None;
         let mut list_buffer: Vec<Command> = Vec::new();
+        let mut is_first_line = true;
 
         loop {
             line.clear();
@@ -160,6 +161,13 @@ impl Connection {
             }
 
             let trimmed = line.trim_end_matches(['\r', '\n']);
+            if is_first_line {
+                is_first_line = false;
+                if protocol::is_http_request_line(trimmed) {
+                    log::warn!(target: "mpd", "[{}] closing connection: HTTP request sent to MPD port", self.peer);
+                    break;
+                }
+            }
             if trimmed == "close" {
                 break;
             }

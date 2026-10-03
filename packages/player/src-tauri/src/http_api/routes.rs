@@ -3,6 +3,7 @@ use std::convert::Infallible;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
+    middleware,
     response::{
         sse::{Event, KeepAlive, Sse},
         IntoResponse, Response,
@@ -14,7 +15,7 @@ use futures::Stream;
 use serde_json::{json, Value};
 use tokio::sync::broadcast;
 
-use super::{actions, auth, search, RemoteEvent};
+use super::{actions, auth, headers, search, RemoteEvent};
 use crate::bridge::{bridge::Bridge, types::BridgeError};
 
 pub const API_VERSION: u32 = 1;
@@ -168,5 +169,5 @@ pub fn router(
         .fallback(super::frontend::serve_frontend)
         .with_state(state);
 
-    auth::protect(routes, auth_state)
+    auth::protect(routes, auth_state).layer(middleware::from_fn(headers::security_headers))
 }
