@@ -73,6 +73,6 @@ jobs:
         run: pnpm test
 
       - name: Build
-        run: pnpm build
-        env:
-          TAURI_CONFIG: '{"bundle":{"createUpdaterArtifacts":false}}'
+        run: |
+          pnpm turbo run build --filter='!@nuclearplayer/player'
+          pnpm --filter @nuclearplayer/player run build --config '{"bundle":{"createUpdaterArtifacts":false}}'
