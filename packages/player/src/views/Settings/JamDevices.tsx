@@ -6,6 +6,7 @@ import { useTranslation } from '@nuclearplayer/i18n';
 import { Button, SectionShell } from '@nuclearplayer/ui';
 
 import { useCoreSetting } from '../../hooks/useCoreSetting';
+import { useJamRemoteUrl } from '../../hooks/useJamRemoteUrl';
 import type { RemoteDevice } from '../../services/tauri/bindings';
 import { InfoField } from './InfoField';
 import { useJamDevices } from './useJamDevices';
@@ -62,7 +63,7 @@ const DeviceRow: FC<{
 
 const JamDevicesPanel: FC = () => {
   const { t } = useTranslation('preferences');
-  const [remoteUrl] = useCoreSetting<string>('integrations.jam.remoteUrl');
+  const remoteUrl = useJamRemoteUrl();
   const {
     devices,
     isLoaded,
@@ -74,7 +75,7 @@ const JamDevicesPanel: FC = () => {
   } = useJamDevices();
 
   const pairingLink = pairingCode
-    ? `${remoteUrl ?? ''}${PAIRING_LINK_SEPARATOR}${pairingCode}`
+    ? `${remoteUrl}${PAIRING_LINK_SEPARATOR}${pairingCode}`
     : '';
 
   return (

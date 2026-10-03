@@ -352,4 +352,21 @@ describe('RemoteControl', () => {
       });
     });
   });
+
+  it('reconnects and resyncs when the app returns to the foreground', async () => {
+    await RemoteControlWrapper.mount();
+    await RemoteControlWrapper.simulateConnection();
+    RemoteControlWrapper.simulateConnectionFailure();
+    await waitFor(() => {
+      expect(RemoteControlWrapper.errorState).toBeInTheDocument();
+    });
+    const connectionsBefore = RemoteControlWrapper.eventSourceCount;
+
+    RemoteControlWrapper.returnToForeground();
+    await RemoteControlWrapper.simulateConnection();
+
+    expect(RemoteControlWrapper.eventSourceCount).toBe(connectionsBefore + 1);
+    expect(RemoteControlWrapper.errorState).not.toBeInTheDocument();
+    expect(RemoteControlWrapper.header.statusText).toBe('Connected');
+  });
 });

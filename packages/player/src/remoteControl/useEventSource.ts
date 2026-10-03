@@ -49,10 +49,23 @@ export const useEventSource = (url: string) => {
       });
     };
 
+    const reconnectWhenVisible = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      clearTimeout(reconnectTimeout);
+      source.current?.close();
+      retries = 0;
+      setStatus('reconnecting');
+      connect();
+    };
+
     connect();
+    document.addEventListener('visibilitychange', reconnectWhenVisible);
 
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', reconnectWhenVisible);
       clearTimeout(reconnectTimeout);
       source.current?.close();
       source.current = null;

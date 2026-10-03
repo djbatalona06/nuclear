@@ -7,6 +7,7 @@
 * [Getting started](user-manual/getting-started.md)
 * [Installation](user-manual/installation.md)
 * [Remote control](user-manual/remote-control.md)
+* [Remote access with Tailscale](user-manual/remote-access.md)
 
 ## Core Concepts
 

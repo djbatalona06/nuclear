@@ -6,6 +6,7 @@ import { useTranslation } from '@nuclearplayer/i18n';
 import { Popover, Tooltip } from '@nuclearplayer/ui';
 
 import { useCoreSetting } from '../hooks/useCoreSetting';
+import { useJamRemoteUrl } from '../hooks/useJamRemoteUrl';
 import { InfoField } from '../views/Settings/InfoField';
 
 const LOGO_SIZE = 40;
@@ -14,7 +15,7 @@ const LOGO_URL = '/logo-icon-on-white.png';
 export const JamQrCodeButton: FC = () => {
   const { t } = useTranslation('remote');
   const [jamEnabled] = useCoreSetting<boolean>('integrations.jam.enabled');
-  const [remoteUrl] = useCoreSetting<string>('integrations.jam.remoteUrl');
+  const remoteUrl = useJamRemoteUrl();
 
   if (!jamEnabled) {
     return null;
@@ -30,7 +31,7 @@ export const JamQrCodeButton: FC = () => {
       >
         <QRCodeSVG
           className="text-primary rounded-lg"
-          value={remoteUrl ?? ''}
+          value={remoteUrl}
           size={200}
           fgColor="currentColor"
           bgColor="#ffffff"
