@@ -36,4 +36,5 @@ Plugins run with the same privileges as Nuclear. A malicious plugin is out of sc
 - **Plain HTTP on your home network.** Without Tailscale, Nuclear Jam uses plain HTTP, so anyone on the same Wi-Fi can observe pairing and the cookie. Pair only on a network you trust, or use [Tailscale](packages/docs/user-manual/remote-access.md) and turn on **Tailnet only**.
 - **Never use `tailscale funnel`.** It publishes Nuclear Jam to the whole internet. Use `tailscale serve` only.
 - **Local programs can use MCP and MPD.** Both are unauthenticated by design, like most MPD servers. Leave them off unless you use them.
+- **yt-dlp runs on your computer.** Nuclear downloads yt-dlp nightly builds from the yt-dlp project's GitHub releases over HTTPS and runs them. The download is not pinned to a checksum.
 - **Unsigned installers.** The Windows installer is not code-signed and the macOS build is ad-hoc signed, so the operating system will warn you the first time you open it.
