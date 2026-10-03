@@ -21,6 +21,7 @@ export type NuclearJamPairProps = {
   onSubmit: () => void;
   isSubmitting?: boolean;
   error?: string;
+  hint?: string;
   labels: NuclearJamPairLabels;
   className?: string;
 };
@@ -33,6 +34,7 @@ export const NuclearJamPair: FC<NuclearJamPairProps> = ({
   onSubmit,
   isSubmitting = false,
   error,
+  hint,
   labels,
   className,
 }) => {
@@ -55,6 +57,14 @@ export const NuclearJamPair: FC<NuclearJamPairProps> = ({
         <h1 className="text-foreground text-3xl">{labels.title}</h1>
         <p className="text-foreground-secondary">{labels.subtitle}</p>
       </div>
+      {hint && (
+        <p
+          className="border-border bg-background-secondary rounded-md border-(length:--border-width) p-3 text-sm"
+          data-testid="jam-pair-hint"
+        >
+          {hint}
+        </p>
+      )}
       <Input
         label={labels.code}
         value={code}

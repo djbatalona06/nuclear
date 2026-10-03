@@ -27,10 +27,13 @@ import { useRemoteStore } from './remoteStore';
 const user = userEvent.setup();
 const MAX_RETRIES = 3;
 const UNAUTHORIZED = 401;
+const IPHONE_SAFARI_USER_AGENT =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 
 export const RemoteControlWrapper = {
   reset() {
     MockEventSource.lastInstance = null;
+    MockEventSource.instanceCount = 0;
     useRemoteStore.setState(useRemoteStore.getInitialState());
     vi.stubGlobal('EventSource', MockEventSource);
     vi.restoreAllMocks();
@@ -57,6 +60,22 @@ export const RemoteControlWrapper = {
 
   openPairingLink(code: string) {
     window.history.replaceState(null, '', `/#pair=${code}`);
+  },
+
+  useIphoneSafari() {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      IPHONE_SAFARI_USER_AGENT,
+    );
+  },
+
+  returnToForeground() {
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+  },
+
+  get eventSourceCount() {
+    return MockEventSource.instanceCount;
   },
 
   revokeThisDevice() {
@@ -112,6 +131,9 @@ export const RemoteControlWrapper = {
     },
     get error() {
       return screen.queryByTestId('jam-pair-error');
+    },
+    get installHint() {
+      return screen.queryByTestId('jam-pair-hint');
     },
     mockSuccess() {
       FetchMock.get('/api/pair', REMOTE_DEVICE);

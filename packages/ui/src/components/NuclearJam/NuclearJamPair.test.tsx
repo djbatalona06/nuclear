@@ -104,4 +104,22 @@ describe('NuclearJamPair', () => {
 
     expect(screen.getByTestId('jam-pair-submit')).toBeDisabled();
   });
+
+  it('shows a hint when one is given', () => {
+    render(
+      <NuclearJamPair
+        code=""
+        deviceName="Phone"
+        onCodeChange={noop}
+        onDeviceNameChange={noop}
+        onSubmit={noop}
+        hint="Add this page to your home screen first"
+        labels={labels}
+      />,
+    );
+
+    expect(screen.getByTestId('jam-pair-hint')).toHaveTextContent(
+      'Add this page to your home screen first',
+    );
+  });
 });

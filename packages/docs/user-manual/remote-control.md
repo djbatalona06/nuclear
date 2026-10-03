@@ -19,7 +19,7 @@ How does it work? Nuclear can start a small web server that can be accessed on y
 The server binds to your LAN address on a port in the 4120-4129 range. If your computer's address is `192.168.1.42`, the Remote URL looks like `http://192.168.1.42:4120`.
 
 {% hint style="info" %}
-Nuclear Jam only listens on your local network. Devices need to be on the same Wi-Fi (or wired LAN) to connect.
+Nuclear Jam only listens on your local network. Devices need to be on the same Wi-Fi (or wired LAN) to connect. To use it away from home, or to install it on your phone's home screen, see [Remote access with Tailscale](remote-access.md).
 {% endhint %}
 
 ## Connect from your phone

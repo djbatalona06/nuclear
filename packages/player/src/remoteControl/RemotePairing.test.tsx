@@ -26,6 +26,22 @@ describe('Remote pairing', () => {
     expect(RemoteControlWrapper.connectingState).not.toBeInTheDocument();
   });
 
+  it('suggests adding the remote to the home screen on an iPhone', async () => {
+    RemoteControlWrapper.useIphoneSafari();
+
+    await RemoteControlWrapper.mountUnpaired();
+
+    expect(RemoteControlWrapper.pairing.installHint).toHaveTextContent(
+      'Add to Home Screen',
+    );
+  });
+
+  it('does not suggest the home screen outside iOS', async () => {
+    await RemoteControlWrapper.mountUnpaired();
+
+    expect(RemoteControlWrapper.pairing.installHint).not.toBeInTheDocument();
+  });
+
   it('suggests a default device name', async () => {
     await RemoteControlWrapper.mountUnpaired();
 

@@ -43,11 +43,13 @@ export const createJamDevicesWrapper = (commandMocks: TauriCommandMocks) => ({
   async mount({
     jamEnabled = true,
     remoteUrl = DEFAULT_REMOTE_URL,
-  }: { jamEnabled?: boolean; remoteUrl?: string } = {}) {
+    publicUrl = '',
+  }: { jamEnabled?: boolean; remoteUrl?: string; publicUrl?: string } = {}) {
     await initializeSettingsStore();
     registerBuiltInCoreSettings();
     await setSetting('core.integrations.jam.enabled', jamEnabled);
     await setSetting('core.integrations.jam.remoteUrl', remoteUrl);
+    await setSetting('core.integrations.jam.publicUrl', publicUrl);
     const component = render(<App />);
     await user.click(
       await component.findByRole('button', { name: 'Preferences' }),

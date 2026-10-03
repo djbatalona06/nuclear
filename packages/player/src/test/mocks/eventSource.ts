@@ -6,6 +6,7 @@ export class MockEventSource {
   static readonly CLOSED = 2;
 
   static lastInstance: MockEventSource | null = null;
+  static instanceCount = 0;
 
   readyState = MockEventSource.CONNECTING;
   url: string;
@@ -14,6 +15,7 @@ export class MockEventSource {
   constructor(url: string) {
     this.url = url;
     MockEventSource.lastInstance = this;
+    MockEventSource.instanceCount++;
   }
 
   addEventListener(type: string, listener: EventSourceListener) {

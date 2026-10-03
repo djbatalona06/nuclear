@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import { useTranslation } from '@nuclearplayer/i18n';
 import { NuclearJam } from '@nuclearplayer/ui';
 
+import { shouldSuggestHomeScreen } from './homeScreen';
 import { HTTP_STATUS, JSON_HEADERS } from './remoteApi';
 
 const PAIRING_LINK_PREFIX = '#pair=';
@@ -79,6 +80,7 @@ export const PairDevice: FC<PairDeviceProps> = ({ onPaired }) => {
       onSubmit={() => pairing.mutate({ code: code.trim(), deviceName })}
       isSubmitting={pairing.isPending}
       error={pairing.error ? t(errorKeyFor(pairing.error)) : undefined}
+      hint={shouldSuggestHomeScreen() ? t('pair.homeScreenHint') : undefined}
       labels={{
         title: t('pair.title'),
         subtitle: t('pair.subtitle'),

@@ -69,6 +69,7 @@ export const NuclearJamControls: FC<NuclearJamControlsProps> = ({
           size="icon"
           variant={shuffleActive ? 'default' : 'text'}
           onClick={onShuffleToggle}
+          className="size-11"
           data-testid="jam-shuffle-button"
         >
           <Shuffle size={18} />
@@ -78,6 +79,7 @@ export const NuclearJamControls: FC<NuclearJamControlsProps> = ({
           size="icon"
           variant="text"
           onClick={onPrevious}
+          className="size-11"
           data-testid="jam-previous-button"
         >
           <SkipBack size={24} />
@@ -97,6 +99,7 @@ export const NuclearJamControls: FC<NuclearJamControlsProps> = ({
           size="icon"
           variant="text"
           onClick={onNext}
+          className="size-11"
           data-testid="jam-next-button"
         >
           <SkipForward size={24} />
@@ -106,6 +109,7 @@ export const NuclearJamControls: FC<NuclearJamControlsProps> = ({
           size="icon"
           variant={repeatMode !== 'off' ? 'default' : 'text'}
           onClick={onRepeatToggle}
+          className="size-11"
           data-testid="jam-repeat-button"
         >
           {repeatMode === 'one' ? <Repeat1 size={18} /> : <Repeat size={18} />}
